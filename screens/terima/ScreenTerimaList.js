@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import useHTTP from "../../hooks/useHTTP";
 import useJWT from "../../hooks/useJWT";
 import { ScrollView, Text, View, RefreshControl } from "react-native";
-import { List, Badge } from "react-native-paper"
+import { List, Badge, Searchbar } from "react-native-paper"
 import useMessage from "../../hooks/useMessage";
 import { BASE_URL } from "../../settings";
 import { Appbar } from 'react-native-paper';
@@ -55,9 +55,19 @@ const ScreenTerimaList = ({navigation}) => {
           title={"Terima"} 
           action={(
             <Appbar.Action icon="plus-circle-outline" onPress={() => {
-              navigation.navigate('ScreenBarangCreate')
+              navigation.navigate('ScreenTerimaCreate')
             }} />
           )}
+        />
+        <Searchbar
+          placeholder="Search"
+          style={{marginHorizontal: 16, marginVertical: 16}}
+          onChangeText={(text) => {
+            const debounce = setTimeout(() => {
+              onTerimaList({search: text})
+              clearTimeout(debounce)
+            }, 1000)
+          }}
         />
         <WidgetCommonAuth child={(
           <ScrollView
@@ -69,7 +79,7 @@ const ScreenTerimaList = ({navigation}) => {
           >
             {daftarTerima.map((terima) => (
               <List.Item
-                // onPress={() => navigation.navigate("ScreenBarangDetail", {id: barang._id})}
+                onPress={() => navigation.navigate("ScreenTerimaDetail", {id: terima._id})}
                 key={terima.id}
                 title={terima.pelanggan.nama}
                 left={props => <List.Icon {...props} icon="folder-outline" />}

@@ -1,106 +1,89 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import useHTTP from "../../hooks/useHTTP";
 import useJWT from "../../hooks/useJWT";
-import { useIsFocused } from '@react-navigation/native';
+import { ScrollView, Text, View, RefreshControl } from "react-native";
+import { List, Badge } from "react-native-paper"
 import useMessage from "../../hooks/useMessage";
-import { useState } from "react";
-import useValidator from "../../hooks/useValidator";
-import { Text, View } from "react-native";
+import { BASE_URL } from "../../settings";
+import { Appbar } from 'react-native-paper';
+import { useIsFocused } from '@react-navigation/native';
 import WidgetCommonHeader from "../../widgets/commons/WidgetCommonHeader";
-import { Appbar, TextInput, Button, IconButton, List } from 'react-native-paper';
 import WidgetCommonAuth from "../../widgets/commons/WidgetCommonAuth";
+import WidgetCommonStatus from "../../widgets/commons/WidgetCommonStatus";
+ 
 
-const ScreenTerimaCreate = ({navigation}) => {
+const ScreenTerimaList = ({navigation}) => {
+  const [refreshing, setRefreshing] = useState(false);
   const isFocused = useIsFocused();
   const http = useHTTP();
   const jwt = useJWT();
   const message = useMessage();
 
-  const [terima, setTerima] = useState({
-    nomor: "",
-    berat: 0,
-    uangMuka: 0
-  })
-  const terimValidator = useValidator({
-    nomor: [],
-    berat: [],
-    uangMuka: []
-  })
+  const [daftarTerima, setDaftarTerima] = useState([])
+  
+  const onTerimaList = async (params) => {
+    const url = `${BASE_URL}/terima/`;
+    const config = {
+      headers: {
+        Authorization: await jwt.get(),
+      },
+      params
+    }
+    http.privateHTTP.get(url, config).then((response) => {
+      const { results, ...pagination } = response.data;
+      setDaftarTerima(results)
+    }).catch((error) => {
+      message.error(error);
+    })
+  }
+
+  useEffect(() => {
+    if (isFocused) {
+      onTerimaList()
+    }
+    
+  }, [isFocused]);
+
 
   return (
     <>
       <View>
-      <WidgetCommonHeader 
-        back={(
-          <Appbar.BackAction onPress={navigation.goBack} />
-        )}
-        title={'Penerimaan'}
-      />
-      <WidgetCommonAuth child={(
-        <>
-          <List.Subheader>Detail Transaksi</List.Subheader>
-          <View style={{gap: 16}}>
-            <TextInput
-              style={{marginHorizontal: 4}}
-              label="Nomor"
-              // value={text}
-              // onChangeText={text => setText(text)}
-            />
-            <TextInput
-              style={{marginHorizontal: 4}}
-              label="Berat"
-              // value={text}
-              // onChangeText={text => setText(text)}
-            />
-            <TextInput
-              style={{marginHorizontal: 4}}
-              label="Uang Muka"
-              // value={text}
-              // onChangeText={text => setText(text)}
-            />
-          </View>
-
-          <List.Subheader>Pelanggan</List.Subheader>
-          <View style={{gap: 16}}>
-            <TextInput
-              style={{marginHorizontal: 4}}
-              label="Nama"
-              // value={text}
-              // onChangeText={text => setText(text)}
-            />
-            <TextInput
-              style={{marginHorizontal: 4}}
-              label="Alamat"
-              // value={text}
-              // onChangeText={text => setText(text)}
-            />
-            <TextInput
-              style={{marginHorizontal: 4}}
-              label="Telepon"
-              // value={text}
-              // onChangeText={text => setText(text)}
-            />
-          </View>
-          <List.Section>
-            <List.Subheader style={{flexDirection: "column", justifyContent: "center", width: "100%"}}>
-              <Text>Items/Services</Text>
-              <IconButton
-                icon="shape-circle-plus"
-                style={{backgroundColor: "red"}}
-                size={16}
-                onPress={() => console.log('Pressed')}
+        <WidgetCommonHeader 
+          back={(
+            <Appbar.BackAction onPress={navigation.goBack} />
+          )}
+          title={"Terima"} 
+          action={(
+            <Appbar.Action icon="plus-circle-outline" onPress={() => {
+              navigation.navigate('ScreenTerimaCreate')
+            }} />
+          )}
+        />
+        <WidgetCommonAuth child={(
+          <ScrollView
+            style={{width: "100%"}}
+            // onScroll={(e) => {console.log(e.contentOffset)}}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={() => {}} />
+            }
+          >
+            {daftarTerima.map((terima) => (
+              <List.Item
+                onPress={() => navigation.navigate("ScreenTerimaDetail", {id: terima._id})}
+                key={terima.id}
+                title={terima.pelanggan.nama}
+                left={props => <List.Icon {...props} icon="folder-outline" />}
+                right={props => (
+                  <WidgetCommonStatus status={terima.status} />
+                )}
               />
-            </List.Subheader>
-            <List.Item title="First Item" left={() => <List.Icon icon="folder" />} />
-            <List.Item
-              title="Second Item"
-              left={() => <List.Icon icon="folder" />}
-            />
-          </List.Section>
-        </>
-      )} />
+            ))}
+          </ScrollView>
+
+        )} />
       </View>
     </>
   )
 }
 
-export default ScreenTerimaCreate;
+export default ScreenTerimaList;

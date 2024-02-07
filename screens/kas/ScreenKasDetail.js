@@ -1,5 +1,5 @@
-import { StyleSheet, View, } from 'react-native';
-import { Appbar, TextInput, Button} from 'react-native-paper';
+import { StyleSheet, View, Text } from 'react-native';
+import { Appbar, TextInput, List } from 'react-native-paper';
 import WidgetCommonValidator from '../../widgets/commons/WidgetCommonValidator';
 import useMessage from '../../hooks/useMessage';
 import useHTTP from '../../hooks/useHTTP';
@@ -22,12 +22,15 @@ const ScreenKasDetail = ({ navigation, route }) => {
         id: [],
     })
 
-      const handleChangeKas = (text, field) => {
-            // Assuming the input is numerical
-            const value = parseFloat(text.replace(/[^0-9]/g, '')); //
-        setKas({...kas, [field]: text})
-      }
+    // const handleChangeKas = (text, field) => {
 
+    //     const value = parseFloat(text.replace(/[^0-9]/g, '')); //
+    //     setKas({ ...kas, [field]: text })
+    // }
+
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
+    }
     const onKasUpdate = async () => {
         try {
             kasValidator.reset()
@@ -107,7 +110,8 @@ const ScreenKasDetail = ({ navigation, route }) => {
                     title="Detail Kas"
                 />
 
-                <WidgetCommonAuth child={(
+                {/* <WidgetCommonAuth child={(
+                    
                     <View style={styles.container}>
                         <View style={styles.wrapperControl}>
                             <TextInput
@@ -138,7 +142,13 @@ const ScreenKasDetail = ({ navigation, route }) => {
                             <Button onPress={onKasUpdate} mode="contained">Simpan</Button>
                         </View>
                     </View>
-                )} />
+                )} /> */}
+                <List.Section>
+                    <List.Subheader>Pembayaran</List.Subheader>
+                    <List.Item title={"Nomor Transaksi"} right={() => <Text>{kas.nomorTransaksi} Kg</Text>} />
+                    <List.Item title={"Pemasukan"} right={() => <Text>{formatCurrency(kas.pemasukan)}</Text>} />
+                    <List.Item title={"Pengeluaran"} right={() => <Text>{formatCurrency(kas.pengeluaran)}</Text>} />
+                </List.Section>
             </View>
         </>
 
